@@ -1,3 +1,4 @@
 name: ChatMentions
 version: '${project.version}'
 main: com.lsdevcloud.chatmentions.ChatMentions
+folia-supported: true
