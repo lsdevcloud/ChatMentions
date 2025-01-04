@@ -1,57 +1,54 @@
 package com.lsdevcloud.chatmentions;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
- * Created 24.11.2024
+ * Created: 24.11.2024
  *
  * @author lsdevcloud
  */
-
-public final class ChatMentions extends JavaPlugin implements Listener
-{
+public final class ChatMentions extends JavaPlugin implements Listener {
 
     @Override
-    public void onEnable()
-    {
+    public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
-        // Plugin startup logic
-
+        getLogger().info("ChatMentions has been enabled!");
     }
 
     @Override
-    public void onDisable()
-    {
-        // Plugin shutdown logic
+    public void onDisable() {
+        getLogger().info("ChatMentions has been disabled!");
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onChat(final AsyncPlayerChatEvent event)
-    {
+    public void onChat(final AsyncPlayerChatEvent event) {
+        final Set<String> onlinePlayerNames = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toSet());
 
-        final String[] splitMessage = event.getMessage().split(" ");
+        final String highlightedMessage = highlightMentions(event.getMessage(), onlinePlayerNames);
 
-        StringBuilder message = new StringBuilder("§r");
-        for (int i = 0; i < splitMessage.length; i++)
-        {
-            final String string = splitMessage[i];
-            if (Bukkit.getOnlinePlayers().stream().map(HumanEntity::getName).anyMatch(s -> s.equals(string)))
-            {
+        event.setMessage(highlightedMessage);
+    }
 
-                message.append("§b@" + string + "§r ");
-            }
-            else
-            {
-                message.append(string + " ");
+    private String highlightMentions(String message, Set<String> onlinePlayerNames) {
+        String[] words = message.split("\\s+");
+        StringBuilder formattedMessage = new StringBuilder("§r");
+
+        for (String s : words) {
+            if (onlinePlayerNames.contains(s)) {
+                formattedMessage.append("§b@").append(s).append("§r ");
+            } else {
+                formattedMessage.append(s).append(" ");
             }
         }
-
-        event.setMessage(message.toString());
+        return formattedMessage.toString().trim();
     }
 }
